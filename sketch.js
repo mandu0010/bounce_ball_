@@ -1,73 +1,50 @@
-let snow = [];
+// The Nature of Code
+// Daniel Shiffman
+// http://natureofcode.com
+
+// A reference to our box2d world
+let world;
+
+// A list for all of our particles
+let particles = [];
+
+let wall;
 
 function setup() {
-  createCanvas(700, 400);
+  createCanvas(640, 360);
 
+  // Initialize box2d physics and create the world
+  world = createWorld();
+
+  world.SetContactListener(new CustomListener());
+
+  wall = new Boundary(width / 2, height - 5, width, 10);
 }
 
-function mousePressed(){
-  let p = new Snow();
-  snow.push(p);
-}
 function draw() {
-  background(50, 10);
-  gravity1 = createVector(0.07, 0.5);
-   for (let i = 0 ; i<snow.length ; i++){
-  
-       wind = createVector(0.5, -0.3);
-     
-     if (keyIsPressed) {
-     snow[i].applyForce(wind);
-      
-         }
-     
-   snow[i].applyForce(gravity1);
-   snow[i].update();
-   snow[i].display();
-   snow[i].checkadge();
-    
+  background(51);
+
+  // We must always step through time!
+  let timeStep = 1.0 / 30;
+  // 2nd and 3rd arguments are velocity and position iterations
+  world.Step(timeStep, 10, 10);
+
+  if (random(1) < 0.1) {
+    let sz = random(4, 8);
+    particles.push(new Particle(random(width), 20, sz));
   }
 
-}
 
-
-class Snow {
-  
-  constructor(){
-  this.pos = createVector(mouseX, mouseY, random(2,4));
-  this.vel = createVector(0,0);
-  this.acc = createVector(0,0);
-  this.w = random(10,50);
-  }
-  
-  applyForce(force){
-    this.acc.add(force);
+  // Look at all particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].display();
+    // Particles that leave the screen, we delete them
+    // (note they have to be deleted from both the box2d world and our list
+    if (particles[i].done()) {
+      particles.splice(i, 1);
+    }
   }
 
-  update(){
-    this.vel.add(this.acc);
-    this.pos.add(this.vel);
-    
-    this.acc.set(0,0);
-  }
-  
-  display(){
-    fill(random(0,255),random(0,255),random(0,255),random(10,255));
-    ellipse(this.pos.x, this.pos.y, this.w*2, this.w*2);
-    
-  }
-  
- checkadge(){
-   if (this.pos.y > height) {
-      this.vel.y = this.vel.y * -1;
-      this.pos.y = height;
-     }
-        if (this.pos.x > width) {
-      this.vel.x = this.vel.x * -1;
-      this.pos.x = width;
-    } 
-   
-    
-  }
-  
+  wall.display();
+
 }
